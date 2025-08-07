@@ -173,6 +173,50 @@
             max-height: 150px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .image-preview img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Modal cho ảnh phóng to */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10001;
+        }
+
+        .close-modal:hover {
+            opacity: 0.7;
         }
 
         .checkbox-group {
@@ -267,6 +311,77 @@
             display: none !important;
         }
 
+        /* Styles cho PDF export */
+        .pdf-content {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            max-width: 210mm;
+            background: white;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .pdf-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 15px;
+        }
+
+        .pdf-header h1 {
+            color: #4CAF50;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .pdf-section {
+            margin-bottom: 25px;
+        }
+
+        .pdf-section h2 {
+            color: #2e7d32;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4CAF50;
+            padding-left: 10px;
+        }
+
+        .pdf-section h3 {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .pdf-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .pdf-label {
+            font-weight: bold;
+            min-width: 120px;
+            color: #555;
+        }
+
+        .pdf-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .pdf-classification {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .pdf-result {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -346,34 +461,32 @@
                 <div class="form-group">
                     <label>Tải lên ảnh CTG:</label>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="image-upload-area">
-                            <p>📷 Ảnh CTG trước đó</p>
-                            <input type="file" id="ctg-before" accept="image/*">
-                            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                                <button type="button" class="upload-btn" onclick="document.getElementById('ctg-before').click()">
-                                    📁 Chọn từ thư viện
-                                </button>
-                                <button type="button" class="upload-btn" onclick="captureImage('ctg-before')">
-                                    📸 Chụp ảnh
-                                </button>
-                            </div>
-                            <div id="preview-before" class="image-preview"></div>
+                    <div class="image-upload-area">
+                        <p>📷 Ảnh CTG trước đó</p>
+                        <input type="file" id="ctg-before" accept="image/*">
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                            <button type="button" class="upload-btn" onclick="document.getElementById('ctg-before').click()">
+                                📁 Chọn từ thư viện
+                            </button>
+                            <button type="button" class="upload-btn" onclick="captureImage('ctg-before')">
+                                📸 Chụp ảnh
+                            </button>
                         </div>
+                        <div id="preview-before" class="image-preview"></div>
+                    </div>
 
-                        <div class="image-upload-area">
-                            <p>📷 Ảnh CTG hiện tại</p>
-                            <input type="file" id="ctg-current" accept="image/*">
-                            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                                <button type="button" class="upload-btn" onclick="document.getElementById('ctg-current').click()">
-                                    📁 Chọn từ thư viện
-                                </button>
-                                <button type="button" class="upload-btn" onclick="captureImage('ctg-current')">
-                                    📸 Chụp ảnh
-                                </button>
-                            </div>
-                            <div id="preview-current" class="image-preview"></div>
+                    <div class="image-upload-area">
+                        <p>📷 Ảnh CTG hiện tại</p>
+                        <input type="file" id="ctg-current" accept="image/*">
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                            <button type="button" class="upload-btn" onclick="document.getElementById('ctg-current').click()">
+                                📁 Chọn từ thư viện
+                            </button>
+                            <button type="button" class="upload-btn" onclick="captureImage('ctg-current')">
+                                📸 Chụp ảnh
+                            </button>
                         </div>
+                        <div id="preview-current" class="image-preview"></div>
                     </div>
                 </div>
 
@@ -791,6 +904,15 @@
         </div>
     </div>
 
+    <!-- Modal cho phóng to ảnh -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Thư viện html2pdf cho xuất PDF hỗ trợ tiếng Việt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script>
         // Khởi tạo
         document.addEventListener('DOMContentLoaded', function() {
@@ -829,10 +951,25 @@
                 reader.onload = function(e) {
                     const previewId = inputId === 'ctg-before' ? 'preview-before' : 'preview-current';
                     const preview = document.getElementById(previewId);
-                    preview.innerHTML = `<img src="${e.target.result}" alt="CTG Preview">`;
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'CTG Preview';
+                    img.onclick = function() { openImageModal(e.target.result); };
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
                 };
                 reader.readAsDataURL(file);
             }
+        }
+
+        // Hàm phóng to ảnh
+        function openImageModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').style.display = 'block';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
         }
 
         // Hàm chụp ảnh
@@ -2413,7 +2550,136 @@
         }
 
         function exportPDF() {
-            alert('📄 Chức năng xuất PDF đang được phát triển...');
+            try {
+                // Tạo nội dung HTML cho PDF
+                const pdfContent = generatePDFContent();
+                
+                // Tạo element tạm để render PDF
+                const element = document.createElement('div');
+                element.innerHTML = pdfContent;
+                element.className = 'pdf-content';
+                
+                // Thêm vào DOM tạm thời (ẩn)
+                element.style.position = 'absolute';
+                element.style.left = '-9999px';
+                document.body.appendChild(element);
+                
+                // Cấu hình PDF
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: `CTG_Analysis_${document.getElementById('patient-id').value || 'Unknown'}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true,
+                        allowTaint: true
+                    },
+                    jsPDF: { 
+                        unit: 'mm', 
+                        format: 'a4', 
+                        orientation: 'portrait' 
+                    }
+                };
+                
+                // Tạo PDF
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // Xóa element tạm
+                    document.body.removeChild(element);
+                    showNotification('📄 Đã xuất file PDF thành công!', 'success');
+                }).catch((error) => {
+                    document.body.removeChild(element);
+                    console.error('Lỗi khi xuất PDF:', error);
+                    showNotification('❌ Lỗi khi xuất PDF: ' + error.message, 'error');
+                });
+                
+            } catch (error) {
+                console.error('Lỗi khi xuất PDF:', error);
+                showNotification('❌ Lỗi khi xuất PDF: ' + error.message, 'error');
+            }
+        }
+
+        function generatePDFContent() {
+            const patientId = document.getElementById('patient-id').value || 'Chưa nhập';
+            const diagnosis = document.getElementById('diagnosis').value || 'Chưa nhập';
+            const apgar1 = document.getElementById('apgar-1').value || '';
+            const apgar2 = document.getElementById('apgar-2').value || '';
+            const phLevel = document.getElementById('ph-level').value || 'Chưa chọn';
+            const ctgDescription = document.getElementById('ctg-description').value || 'Chưa có mô tả';
+            
+            // Lấy kết quả phân loại
+            const acogResult = document.getElementById('acog-classification').value || 'Chưa phân tích';
+            const figoResult = document.getElementById('figo-classification').value || 'Chưa phân tích';
+            const japanResult = document.getElementById('japan-classification').value || 'Chưa phân tích';
+            const niceResult = document.getElementById('nice-classification').value || 'Chưa phân tích';
+            const physioResult = document.getElementById('physio-classification').value || 'Chưa phân tích';
+            
+            return `
+                <div class="pdf-header">
+                    <h1>BÁO CÁO PHÂN TÍCH CTG</h1>
+                    <p>Ngày phân tích: ${new Date().toLocaleDateString('vi-VN')} - ${new Date().toLocaleTimeString('vi-VN')}</p>
+                </div>
+
+                <div class="pdf-section">
+                    <h2>I. THÔNG TIN BỆNH NHÂN</h2>
+                    <div class="pdf-row">
+                        <div class="pdf-label">ID bệnh nhân:</div>
+                        <div class="pdf-value">${patientId}</div>
+                    </div>
+                    <div class="pdf-row">
+                        <div class="pdf-label">Chẩn đoán:</div>
+                        <div class="pdf-value">${diagnosis}</div>
+                    </div>
+                    ${(apgar1 || apgar2) ? `
+                    <div class="pdf-row">
+                        <div class="pdf-label">APGAR:</div>
+                        <div class="pdf-value">${apgar1}/${apgar2}</div>
+                    </div>` : ''}
+                    <div class="pdf-row">
+                        <div class="pdf-label">pH cuống rốn:</div>
+                        <div class="pdf-value">${phLevel}</div>
+                    </div>
+                </div>
+
+                <div class="pdf-section">
+                    <h2>II. MÔ TẢ CTG</h2>
+                    <div class="pdf-value">${ctgDescription}</div>
+                </div>
+
+                <div class="pdf-section">
+                    <h2>III. KẾT QUẢ PHÂN LOẠI</h2>
+                    
+                    <div class="pdf-classification">
+                        <h3>1. ACOG 2009 (Mỹ)</h3>
+                        <div class="pdf-result">${acogResult}</div>
+                    </div>
+
+                    <div class="pdf-classification">
+                        <h3>2. FIGO 2015 (Quốc tế)</h3>
+                        <div class="pdf-result">${figoResult}</div>
+                    </div>
+
+                    <div class="pdf-classification">
+                        <h3>3. Hiệp hội Sản phụ khoa Nhật Bản</h3>
+                        <div class="pdf-result">${japanResult}</div>
+                    </div>
+
+                    <div class="pdf-classification">
+                        <h3>4. NICE 2022 (Anh)</h3>
+                        <div class="pdf-result">${niceResult}</div>
+                    </div>
+
+                    <div class="pdf-classification">
+                        <h3>5. Phân loại theo Sinh lý</h3>
+                        <div class="pdf-result">${physioResult}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+                    <p><em>Báo cáo được tạo tự động từ Hệ thống Phân tích CTG</em></p>
+                    <p>© 2025 - Phần mềm hỗ trợ chẩn đoán y khoa</p>
+                </div>
+            `;
         }
 
         function reassess() {
