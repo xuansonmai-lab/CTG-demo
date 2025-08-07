@@ -11,6 +11,68 @@
             box-sizing: border-box;
         }
 
+        // Google Sheets Integration
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDyCF1qQ8wkdppnoRuLA69bkOi9hT-EF5EoNdnQgQTTj4ttBg3Gk5nW-oWSijm7-0DVw/exec";
+
+        async function saveToGoogleSheets(data) {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Data sent to Google Sheets successfully');
+                return true;
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                return false;
+            }
+        }
+
+        function prepareDataForGoogleSheets() {
+            const timestamp = new Date().toISOString();
+            const patientId = document.getElementById('patient-id').value || '';
+            const diagnosis = document.getElementById('diagnosis').value || '';
+            
+            // Get image data (placeholder - bạn sẽ cần upload images riêng)
+            const ctgBeforeLink = ""; // Placeholder for uploaded image URL
+            const ctgCurrentLink = ""; // Placeholder for uploaded image URL
+            
+            // Get classification results
+            const niceResult = document.getElementById('nice-classification').value || '';
+            const acogResult = document.getElementById('acog-classification').value || '';
+            const rcogResult = ""; // Placeholder (not implemented)
+            const figoResult = document.getElementById('figo-classification').value || '';
+            const japanResult = document.getElementById('japan-classification').value || '';
+            const physioResult = document.getElementById('physio-classification').value || '';
+            
+            // Get APGAR and pH
+            const apgar1 = document.getElementById('apgar-1').value || '';
+            const apgar2 = document.getElementById('apgar-2').value || '';
+            const phLevel = document.getElementById('ph-level').value || '';
+            
+            return {
+                'Timestamp': timestamp,
+                'ID Bệnh nhân': patientId,
+                'Chẩn đoán': diagnosis,
+                'Link ảnh CTG trước': ctgBeforeLink,
+                'Link ảnh CTG hiện tại': ctgCurrentLink,
+                'NICE 2022': niceResult,
+                'ACOG 2009': acogResult,
+                'RCOG 2001': rcogResult,
+                'FIGO 2015': figoResult,
+                'Japan 5-level': japanResult,
+                'Sinh lý': physioResult,
+                'APGAR 1': apgar1,
+                'APGAR 2': apgar2,
+                'pH cuống rốn': phLevel
+            };
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -173,114 +235,6 @@
             max-height: 150px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .image-preview img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-        }
-
-        /* Image Zoom Modal */
-        .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 10000;
-            overflow: hidden;
-        }
-
-        .image-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .image-modal-content {
-            position: relative;
-            max-width: 95vw;
-            max-height: 95vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .image-modal img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
-            cursor: zoom-in;
-        }
-
-        .image-modal img.zoomed {
-            cursor: zoom-out;
-            transform: scale(1.5);
-        }
-
-        .image-modal-close {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 40px;
-            color: white;
-            cursor: pointer;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s ease;
-        }
-
-        .image-modal-close:hover {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .image-modal-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px 15px;
-            border-radius: 25px;
-        }
-
-        .image-modal-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s ease;
-        }
-
-        .image-modal-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .image-modal-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 14px;
         }
 
         .checkbox-group {
@@ -896,20 +850,6 @@
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Image Zoom Modal -->
-    <div id="imageModal" class="image-modal">
-        <div class="image-modal-close" onclick="closeImageModal()">&times;</div>
-        <div class="image-modal-info" id="imageModalInfo"></div>
-        <div class="image-modal-content">
-            <img id="imageModalImg" src="" alt="CTG Image" onclick="toggleImageZoom()">
-        </div>
-        <div class="image-modal-controls">
-            <button class="image-modal-btn" onclick="toggleImageZoom()">🔍 Zoom</button>
-            <button class="image-modal-btn" onclick="fitImageToScreen()">📱 Fit Screen</button>
-            <button class="image-modal-btn" onclick="downloadImage()">💾 Tải về</button>
         </div>
     </div>
 
@@ -2147,179 +2087,6 @@
             };
         }
 
-        // Tính toán phân loại RCOG 2001
-        function calculateRCOGClassification() {
-            // Phân tích từng feature theo RCOG categories
-            const baselineCategory = analyzeRCOGBaseline();
-            const variabilityCategory = analyzeRCOGVariability();
-            const decelerationCategory = analyzeRCOGDecelerations();
-            const accelerationCategory = analyzeRCOGAccelerations();
-
-            // Đếm số features ở mỗi category
-            const features = [baselineCategory, variabilityCategory, decelerationCategory, accelerationCategory];
-            let reassuringCount = 0;
-            let nonReassuring = 0;
-            let abnormalCount = 0;
-
-            features.forEach(feature => {
-                if (feature.category === 'reassuring') reassuringCount++;
-                else if (feature.category === 'non-reassuring') nonReassuring++;
-                else if (feature.category === 'abnormal') abnormalCount++;
-            });
-
-            // Xác định overall classification
-            let overallClassification;
-            let color;
-            let interpretation;
-
-            if (abnormalCount >= 1 || nonReassuring >= 2) {
-                overallClassification = 'Pathological';
-                color = '#f44336';
-                interpretation = 'CTG bất thường, nguy cơ cao thai nhi gặp tình trạng bất lợi. Cần can thiệp ngay lập tức.';
-            } else if (nonReassuring === 1 && abnormalCount === 0) {
-                overallClassification = 'Suspicious';
-                color = '#ff9800';
-                interpretation = 'CTG nghi ngờ, cần theo dõi chặt chẽ và cân nhắc can thiệp thích hợp.';
-            } else if (reassuringCount === 4) {
-                overallClassification = 'Normal';
-                color = '#4caf50';
-                interpretation = 'CTG bình thường, tiếp tục theo dõi thường quy.';
-            } else {
-                overallClassification = 'Không xác định';
-                color = '#9e9e9e';
-                interpretation = 'Cần đánh giá lại các đặc điểm CTG.';
-            }
-
-            // Tạo chi tiết
-            const details = [
-                `Baseline: ${baselineCategory.description} → ${baselineCategory.category.toUpperCase()}`,
-                `Variability: ${variabilityCategory.description} → ${variabilityCategory.category.toUpperCase()}`,
-                `Decelerations: ${decelerationCategory.description} → ${decelerationCategory.category.toUpperCase()}`,
-                `Accelerations: ${accelerationCategory.description} → ${accelerationCategory.category.toUpperCase()}`,
-                '',
-                `Tổng kết: ${reassuringCount} Reassuring, ${nonReassuring} Non-reassuring, ${abnormalCount} Abnormal`
-            ].join('\n');
-
-            return {
-                classification: overallClassification,
-                color: color,
-                details: details,
-                interpretation: interpretation
-            };
-        }
-
-        // Phân tích Baseline theo RCOG
-        function analyzeRCOGBaseline() {
-            const baseline = document.getElementById('fhr-baseline').value;
-            const variability = document.getElementById('variability').value;
-            
-            // Kiểm tra Sinusoidal ≥10 minutes trước
-            if (variability === 'sinusoidal') {
-                return { category: 'abnormal', description: 'Sinusoidal pattern ≥10 phút' };
-            }
-            
-            if (baseline === '110-160') {
-                const detail = document.getElementById('fhr-110-160-detail').value;
-                if (detail === 'stable') {
-                    return { category: 'reassuring', description: '110-160 bpm ổn định' };
-                } else {
-                    return { category: 'non-reassuring', description: '110-160 bpm không ổn định' };
-                }
-            } else if (baseline === '100-109' || baseline === '160-179') {
-                return { category: 'non-reassuring', description: `${baseline} bpm` };
-            } else if (baseline === '<80' || baseline === '80-99' || baseline === '>180') {
-                return { category: 'abnormal', description: `${baseline} bpm` };
-            }
-            
-            return { category: 'non-reassuring', description: 'Không xác định được baseline' };
-        }
-
-        // Phân tích Variability theo RCOG
-        function analyzeRCOGVariability() {
-            const variability = document.getElementById('variability').value;
-            
-            if (variability === 'normal') {
-                return { category: 'reassuring', description: '≥5 bpm' };
-            } else if (variability === 'absent' || variability === 'minimal') {
-                const duration = document.getElementById('variability-duration').value;
-                if (duration === '40-50' || duration === '50-90') {
-                    return { category: 'non-reassuring', description: '<5 bpm trong 40-90 phút' };
-                } else if (duration === '>90') {
-                    return { category: 'abnormal', description: '<5 bpm ≥90 phút' };
-                } else {
-                    return { category: 'non-reassuring', description: '<5 bpm (thời gian chưa xác định)' };
-                }
-            } else if (variability === 'increased') {
-                return { category: 'non-reassuring', description: 'Dao động tăng' };
-            } else if (variability === 'sinusoidal') {
-                return { category: 'abnormal', description: 'Sinusoidal pattern' };
-            }
-            
-            return { category: 'non-reassuring', description: 'Dao động bất thường' };
-        }
-
-        // Phân tích Decelerations theo RCOG
-        function analyzeRCOGDecelerations() {
-            const noDecel = document.getElementById('no-decel').checked;
-            const earlyDecel = document.getElementById('early-decel').checked;
-            const variableDecel = document.getElementById('variable-decel').checked;
-            const lateDecel = document.getElementById('late-decel').checked;
-            const prolongedDecel = document.getElementById('prolonged-decel').checked;
-            
-            if (noDecel) {
-                return { category: 'reassuring', description: 'Không có nhịp giảm' };
-            }
-            
-            // Kiểm tra Abnormal trước (single prolonged >3 min, late, atypical variable)
-            if (prolongedDecel) {
-                const length = document.getElementById('prolonged-length').value;
-                if (length === '>3') {
-                    return { category: 'abnormal', description: 'Nhịp giảm kéo dài >3 phút' };
-                } else {
-                    return { category: 'non-reassuring', description: 'Nhịp giảm kéo dài ≤3 phút' };
-                }
-            }
-            
-            if (lateDecel) {
-                return { category: 'abnormal', description: 'Nhịp giảm muộn' };
-            }
-            
-            if (variableDecel) {
-                // Kiểm tra atypical variable (có đặc điểm đáng ngại)
-                const concerningFeatures = [
-                    document.getElementById('prolonged-60').checked,
-                    document.getElementById('decreased-variability').checked,
-                    document.getElementById('slow-return').checked,
-                    document.getElementById('lost-shouldering').checked
-                ].filter(Boolean).length;
-                
-                if (concerningFeatures > 0) {
-                    return { category: 'abnormal', description: 'Nhịp giảm bất định có đặc điểm đáng ngại (atypical)' };
-                } else {
-                    return { category: 'non-reassuring', description: 'Nhịp giảm bất định điển hình' };
-                }
-            }
-            
-            if (earlyDecel) {
-                return { category: 'non-reassuring', description: 'Nhịp giảm sớm' };
-            }
-            
-            return { category: 'reassuring', description: 'Không có nhịp giảm' };
-        }
-
-        // Phân tích Accelerations theo RCOG
-        function analyzeRCOGAccelerations() {
-            const accelerations = document.getElementById('accelerations').value;
-            
-            if (accelerations === 'yes') {
-                return { category: 'reassuring', description: 'Có nhịp tăng' };
-            } else {
-                // Note: "absence of accelerations with otherwise normal CTG are of uncertain significance"
-                // Không affect overall classification
-                return { category: 'reassuring', description: 'Mất nhịp tăng (ý nghĩa không rõ ràng với CTG bình thường)' };
-            }
-        }
-
         // Hàm hỗ trợ cho phân loại sinh lý
         function getBaselineDetail() {
             const baseline = document.getElementById('fhr-baseline').value;
@@ -2550,7 +2317,7 @@
         }
 
         // Các hàm xử lý nút
-        function saveAndAnalyzeCTG() {
+        async function saveAndAnalyzeCTG() {
             updateSummary();
             
             // Hiển thị kết quả phân tích (theo alphabetical order)
@@ -2559,7 +2326,6 @@
             const japanClassification = calculateJapanClassification();
             const niceClassification = calculateNICEClassification();
             const physioClassification = calculatePhysiologicalClassification();
-            const rcogClassification = calculateRCOGClassification();
             
             // ACOG 2009
             document.getElementById('acog-classification').value = acogClassification.group;
@@ -2589,193 +2355,21 @@
             document.getElementById('physio-details').value = physioClassification.details;
             document.getElementById('physio-management').value = physioClassification.management;
             
-            // RCOG 2001
-            document.getElementById('rcog-classification').value = rcogClassification.classification;
-            document.getElementById('rcog-classification').style.color = rcogClassification.color;
-            document.getElementById('rcog-details').value = rcogClassification.details;
-            document.getElementById('rcog-interpretation').value = rcogClassification.interpretation;
-            
             // Hiển thị section kết quả
             document.getElementById('analysis-results').classList.remove('hidden');
             
             // Scroll đến kết quả
             document.getElementById('analysis-results').scrollIntoView({ behavior: 'smooth' });
             
-            // Upload data to Google Sheet
-            uploadToGoogleSheet({
-                acog: acogClassification.group,
-                figo: figoClassification.classification,
-                japan: japanClassification.level,
-                nice: niceClassification.classification,
-                physiological: physioClassification.classification,
-                rcog: rcogClassification.classification
-            });
+            // Save to Google Sheets
+            const sheetData = prepareDataForGoogleSheets();
+            const saved = await saveToGoogleSheets(sheetData);
             
-            alert('🎉 Đã phân tích CTG thành công theo 6 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022, Phân loại Sinh lý và RCOG 2001!');
-        }
-
-        // Upload data to Google Sheet
-        async function uploadToGoogleSheet(classifications) {
-            try {
-                console.log('Bắt đầu upload dữ liệu lên Google Sheet...');
-                
-                // Collect data
-                const patientId = document.getElementById('patient-id').value;
-                const diagnosis = document.getElementById('diagnosis').value;
-                const apgar1 = document.getElementById('apgar-1').value;
-                const apgar2 = document.getElementById('apgar-2').value;
-                const phLevel = document.getElementById('ph-level').value;
-                
-                // Get image data
-                const ctgBeforeInput = document.getElementById('ctg-before');
-                const ctgCurrentInput = document.getElementById('ctg-current');
-                
-                let ctgBeforeData = null;
-                let ctgCurrentData = null;
-                
-                if (ctgBeforeInput.files && ctgBeforeInput.files[0]) {
-                    ctgBeforeData = await convertFileToBase64(ctgBeforeInput.files[0]);
-                }
-                
-                if (ctgCurrentInput.files && ctgCurrentInput.files[0]) {
-                    ctgCurrentData = await convertFileToBase64(ctgCurrentInput.files[0]);
-                }
-                
-                // Prepare payload
-                const payload = {
-                    timestamp: new Date().toISOString(),
-                    patientId: patientId,
-                    diagnosis: diagnosis,
-                    ctgBefore: ctgBeforeData,
-                    ctgCurrent: ctgCurrentData,
-                    classifications: classifications,
-                    apgar1: apgar1,
-                    apgar2: apgar2,
-                    phLevel: phLevel
-                };
-                
-                console.log('Payload prepared:', {
-                    patientId: payload.patientId,
-                    diagnosis: payload.diagnosis ? 'Có' : 'Không',
-                    ctgBefore: payload.ctgBefore ? 'Có ảnh' : 'Không có ảnh',
-                    ctgCurrent: payload.ctgCurrent ? 'Có ảnh' : 'Không có ảnh',
-                    classifications: payload.classifications
-                });
-                
-                // Google Apps Script URL - Thay bằng URL thật của bạn
-                const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDyCF1qQ8wkdppnoRuLA69bkOi9hT-EF5EoNdnQgQTTj4ttBg3Gk5nW-oWSijm7-0DVw/exec';
-                
-                // Upload with retry mechanism
-                const response = await uploadWithRetry(GOOGLE_SCRIPT_URL, payload, 3);
-                
-                if (response.success) {
-                    console.log('✅ Upload thành công:', response);
-                    showUploadSuccess(response);
-                } else {
-                    console.error('❌ Upload thất bại:', response.error);
-                    showUploadError(response.error);
-                }
-                
-            } catch (error) {
-                console.error('❌ Lỗi upload:', error);
-                showUploadError(error.message);
+            if (saved) {
+                alert('🎉 Đã phân tích CTG thành công và lưu vào Google Sheets!\n\n📊 Kết quả theo 5 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022 và Phân loại Sinh lý!');
+            } else {
+                alert('🎉 Đã phân tích CTG thành công!\n\n📊 Kết quả theo 5 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022 và Phân loại Sinh lý!\n\n⚠️ Lưu ý: Không thể lưu vào Google Sheets (kiểm tra URL Script)');
             }
-        }
-
-        // Convert file to base64
-        function convertFileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Upload with retry mechanism
-        async function uploadWithRetry(url, payload, maxRetries) {
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    console.log(`🔄 Thử upload lần ${attempt}/${maxRetries}...`);
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const result = await response.json();
-                    console.log(`✅ Upload lần ${attempt} thành công:`, result);
-                    
-                    return result;
-                    
-                } catch (error) {
-                    console.warn(`⚠️ Upload lần ${attempt} thất bại:`, error.message);
-                    
-                    if (attempt === maxRetries) {
-                        throw new Error(`Upload thất bại sau ${maxRetries} lần thử: ${error.message}`);
-                    }
-                    
-                    // Wait before retry (exponential backoff)
-                    const delay = Math.pow(2, attempt) * 1000;
-                    console.log(`⏳ Chờ ${delay}ms trước khi thử lại...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        // Show upload success message
-        function showUploadSuccess(response) {
-            const successDiv = document.createElement('div');
-            successDiv.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 10000;
-                background: #4caf50; color: white; padding: 15px 20px;
-                border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                max-width: 400px; font-family: inherit;
-            `;
-            successDiv.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">✅ Upload thành công!</div>
-                <div style="font-size: 0.9em;">${response.message}</div>
-                ${response.patientId ? `<div style="font-size: 0.8em; margin-top: 5px; opacity: 0.9;">ID: ${response.patientId}</div>` : ''}
-            `;
-            
-            document.body.appendChild(successDiv);
-            
-            setTimeout(() => {
-                successDiv.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(successDiv), 300);
-            }, 4000);
-        }
-
-        // Show upload error message
-        function showUploadError(errorMessage) {
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 10000;
-                background: #f44336; color: white; padding: 15px 20px;
-                border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                max-width: 400px; font-family: inherit;
-            `;
-            errorDiv.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">❌ Upload thất bại!</div>
-                <div style="font-size: 0.9em;">${errorMessage}</div>
-                <div style="font-size: 0.8em; margin-top: 8px; opacity: 0.9;">
-                    Dữ liệu vẫn được hiển thị bình thường. Vui lòng kiểm tra kết nối mạng và thử lại.
-                </div>
-            `;
-            
-            document.body.appendChild(errorDiv);
-            
-            setTimeout(() => {
-                errorDiv.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(errorDiv), 300);
-            }, 7000);
         }
 
         function exportPDF() {
@@ -2813,4 +2407,3 @@
     </script>
 </body>
 </html>
-
