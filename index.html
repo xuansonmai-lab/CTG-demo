@@ -11,68 +11,6 @@
             box-sizing: border-box;
         }
 
-        // Google Sheets Integration
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDyCF1qQ8wkdppnoRuLA69bkOi9hT-EF5EoNdnQgQTTj4ttBg3Gk5nW-oWSijm7-0DVw/exec";
-
-        async function saveToGoogleSheets(data) {
-            try {
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                console.log('Data sent to Google Sheets successfully');
-                return true;
-            } catch (error) {
-                console.error('Error saving to Google Sheets:', error);
-                return false;
-            }
-        }
-
-        function prepareDataForGoogleSheets() {
-            const timestamp = new Date().toISOString();
-            const patientId = document.getElementById('patient-id').value || '';
-            const diagnosis = document.getElementById('diagnosis').value || '';
-            
-            // Get image data (placeholder - bạn sẽ cần upload images riêng)
-            const ctgBeforeLink = ""; // Placeholder for uploaded image URL
-            const ctgCurrentLink = ""; // Placeholder for uploaded image URL
-            
-            // Get classification results
-            const niceResult = document.getElementById('nice-classification').value || '';
-            const acogResult = document.getElementById('acog-classification').value || '';
-            const rcogResult = ""; // Placeholder (not implemented)
-            const figoResult = document.getElementById('figo-classification').value || '';
-            const japanResult = document.getElementById('japan-classification').value || '';
-            const physioResult = document.getElementById('physio-classification').value || '';
-            
-            // Get APGAR and pH
-            const apgar1 = document.getElementById('apgar-1').value || '';
-            const apgar2 = document.getElementById('apgar-2').value || '';
-            const phLevel = document.getElementById('ph-level').value || '';
-            
-            return {
-                'Timestamp': timestamp,
-                'ID Bệnh nhân': patientId,
-                'Chẩn đoán': diagnosis,
-                'Link ảnh CTG trước': ctgBeforeLink,
-                'Link ảnh CTG hiện tại': ctgCurrentLink,
-                'NICE 2022': niceResult,
-                'ACOG 2009': acogResult,
-                'RCOG 2001': rcogResult,
-                'FIGO 2015': figoResult,
-                'Japan 5-level': japanResult,
-                'Sinh lý': physioResult,
-                'APGAR 1': apgar1,
-                'APGAR 2': apgar2,
-                'pH cuống rốn': phLevel
-            };
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -2317,7 +2255,7 @@
         }
 
         // Các hàm xử lý nút
-        async function saveAndAnalyzeCTG() {
+        function saveAndAnalyzeCTG() {
             updateSummary();
             
             // Hiển thị kết quả phân tích (theo alphabetical order)
@@ -2361,15 +2299,117 @@
             // Scroll đến kết quả
             document.getElementById('analysis-results').scrollIntoView({ behavior: 'smooth' });
             
-            // Save to Google Sheets
-            const sheetData = prepareDataForGoogleSheets();
-            const saved = await saveToGoogleSheets(sheetData);
+            // Upload lên Google Sheet
+            uploadToGoogleSheet({
+                acog: acogClassification.group,
+                figo: figoClassification.classification,
+                japan: japanClassification.level,
+                nice: niceClassification.classification,
+                physiological: physioClassification.classification
+            });
             
-            if (saved) {
-                alert('🎉 Đã phân tích CTG thành công và lưu vào Google Sheets!\n\n📊 Kết quả theo 5 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022 và Phân loại Sinh lý!');
-            } else {
-                alert('🎉 Đã phân tích CTG thành công!\n\n📊 Kết quả theo 5 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022 và Phân loại Sinh lý!\n\n⚠️ Lưu ý: Không thể lưu vào Google Sheets (kiểm tra URL Script)');
+            alert('🎉 Đã phân tích CTG thành công theo 5 hệ thống: ACOG 2009, FIGO 2015, Hiệp hội Sản phụ khoa Nhật Bản, NICE 2022 và Phân loại Sinh lý!');
+        }
+
+        // Hàm upload dữ liệu lên Google Sheet
+        function uploadToGoogleSheet(classifications) {
+            // ===== CONFIG: Thay đổi URL Google Apps Script của bạn ở đây =====
+            const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDyCF1qQ8wkdppnoRuLA69bkOi9hT-EF5EoNdnQgQTTj4ttBg3Gk5nW-oWSijm7-0DVw/exec";
+            // ===================================================================
+            
+            try {
+                // Thu thập dữ liệu từ form
+                const patientId = document.getElementById('patient-id').value;
+                const diagnosis = document.getElementById('diagnosis').value;
+                const apgar1 = document.getElementById('apgar-1').value;
+                const apgar2 = document.getElementById('apgar-2').value;
+                const phLevel = document.getElementById('ph-level').value;
+                
+                // Lấy ảnh CTG (base64)
+                const ctgBeforeImg = document.querySelector('#preview-before img');
+                const ctgCurrentImg = document.querySelector('#preview-current img');
+                
+                const ctgBefore = ctgBeforeImg ? ctgBeforeImg.src : null;
+                const ctgCurrent = ctgCurrentImg ? ctgCurrentImg.src : null;
+                
+                // Tạo payload
+                const payload = {
+                    timestamp: new Date().toISOString(),
+                    patientId: patientId,
+                    diagnosis: diagnosis,
+                    ctgBefore: ctgBefore,
+                    ctgCurrent: ctgCurrent,
+                    classifications: {
+                        nice: classifications.nice,
+                        acog: classifications.acog,
+                        rcog: '', // Placeholder for RCOG if needed
+                        figo: classifications.figo,
+                        japan: classifications.japan,
+                        physiological: classifications.physiological
+                    },
+                    apgar1: apgar1,
+                    apgar2: apgar2,
+                    phLevel: phLevel
+                };
+                
+                console.log('Uploading to Google Sheet:', payload);
+                
+                // Gửi dữ liệu
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(() => {
+                    console.log('✅ Dữ liệu đã được gửi lên Google Sheet');
+                    // Hiển thị thông báo nhỏ
+                    showNotification('📊 Đã lưu dữ liệu lên Google Sheet', 'success');
+                })
+                .catch((error) => {
+                    console.error('❌ Lỗi khi upload lên Google Sheet:', error);
+                    showNotification('⚠️ Lỗi khi lưu lên Google Sheet', 'error');
+                });
+                
+            } catch (error) {
+                console.error('❌ Lỗi khi chuẩn bị dữ liệu:', error);
+                showNotification('⚠️ Lỗi khi chuẩn bị dữ liệu', 'error');
             }
+        }
+
+        // Hàm hiển thị thông báo
+        function showNotification(message, type) {
+            // Tạo element thông báo
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transition: all 0.3s ease;
+                background: ${type === 'success' ? '#4caf50' : '#f44336'};
+            `;
+            notification.textContent = message;
+            
+            // Thêm vào DOM
+            document.body.appendChild(notification);
+            
+            // Auto remove sau 4 giây
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
         }
 
         function exportPDF() {
